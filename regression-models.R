@@ -1,4 +1,4 @@
-##1) Population models
+##1) Genetic analysis - Population models
 
 ##Body size at age 10 
 
@@ -18,7 +18,7 @@ normal <- glm(Smk15 ~ GRS_SD + Age + Sex + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + P
 exp(summary(normal)$coefficients[2, 1])
 exp(confint(normal, "GRS_SD"))
 
-##2) Within-sibship models
+##2) Genetic analysis - Within-sibship models
 
 phenotypes <- c("Glasses", "Smoking")
 
@@ -77,3 +77,43 @@ vcv_matrix2 <- vcovCL(fit2, cluster=merge2$FID)
     output$OBS_P_BETA_WF[i] <- test_matrix2[3,4]
 	
 }
+
+##3) ROSLA - latent analysis
+
+#Defining year before/after reform using year of birth (YoB) , month of birth (MoB) and country of birth (CoB) (to restrict to England/Wales)
+YBefore <- data2[which(data2$YoB == "1956" & data2$MoB > 8 & data2$CoB < 3 & data2$CoB > 0 | data2$YoB == "1957" & data2$MoB < 9 & data2$CoB < 3 & data2$CoB > 0), ]
+YAfter <- data2[which(data2$YoB == 1957 & data2$MoB > 8 & data2$CoB < 3 & data2$CoB > 0| data2$YoB == 1958 & data2$MoB < 9 & data2$CoB < 3 & data2$CoB > 0), ]
+
+
+#16 year old leavers from year before reform
+Set1 <- YBefore[which(YBefore$Education == 16), ]
+Set1$Pre <- 0
+
+#16 year old leavers from year after reform
+Set2 <- YAfter[which(YAfter$Education == 16), ]
+Set2$Pre <- 1
+
+Set3 <- rbind(Set1, Set2)
+
+
+#BMI at study baseline
+model1 <- lm (BMI ~ Pre + Sex, data = Set3)
+
+#SBP at study baseline
+model2 <- lm (SBP ~ Pre + Sex, data = Set3)
+
+#Townsend DI at study baseline
+model3 <- lm (TDI ~ Pre + Sex, data = Set3)
+
+#Binary measure of income at study baseline
+model4 <- glm (Income ~ Pre + Sex, data = Set3, family = 'binomial')
+
+#Pack years at study baseline
+model5 <- lm (PackYears ~ Pre + Sex, data = Set3)
+
+#Glasses (or contacts) use at study baseline
+model6 <- glm (Glasses ~ Pre + Sex, data = merge, family = 'binomial')
+
+#Education polygenic score
+model7 <- lm (GRS_SD ~ Pre + Sex, data = merge)
+
